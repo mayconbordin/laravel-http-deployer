@@ -1,0 +1,31 @@
+{
+	"name": "mayconbordin/laravel-http-deployer",
+	"type": "project",
+	"description": "A tool for automated deployment of Laravel applications using HTTP.",
+	"keywords": ["deployment", "http", "shared hosting", "laravel"],
+	"homepage": "https://github.com/mayconbordin/laravel-http-deployer",
+	"license": ["MIT"],
+	"authors": [
+		{
+			"name": "Maycon Bordin",
+		    "email": "mayconbordin@gmail.com"
+		}
+	],
+	"require": {
+		"php": ">=5.4.0",
+	 	"ext-openssl": "*",
+	    "illuminate/support": "5.0.x|5.1.x",
+	    "illuminate/console": "5.0.x|5.1.x",
+	    "illuminate/config": "5.0.x|5.1.x",
+	    "guzzlehttp/guzzle": "^5.2.0"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "~5.0.3",
+	    "mockery/mockery": "~0.9.4"
+	},
+	"autoload": {
+	    "psr-4": {
+		    "Mayconbordin\\LaravelHttpDeployer\\": "src/Mayconbordin/LaravelHttpDeployer/"
+	    }
+	}
+}
