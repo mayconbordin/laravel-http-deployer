@@ -120,7 +120,7 @@ class LaravelHttpDeployer
 
 		$this->package = $this->tempDir . '/' . $this->packageName . '-' . $this->version . '.tar.gz';
 
-		$cmd = sprintf("cd %s && tar -zc -f %s * %s", $this->local, $this->package, $this->getIgnoreMasksTar());
+		$cmd = sprintf("cd %s && tar -zc -f %s . %s", $this->local, $this->package, $this->getIgnoreMasksTar());
 		$out = null;
 		$ret = null;
 
