@@ -97,6 +97,8 @@ The `extra_files` is a list of key/value pairs, where the key is the current fil
 
 The `before_scripts` can be used to run commands locally before packaging the application for deployment, like tasks for compressing CSS and JS files, removing development libraries, etc.
 
+**Obs.: all paths are relative to the current working directory. Preferably the root of your project.**
+
 ## Usage
 
 #### Deploy
