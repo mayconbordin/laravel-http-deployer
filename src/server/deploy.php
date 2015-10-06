@@ -162,7 +162,7 @@ class DeploymentServer
 
     public function getVersion($packageDir)
     {
-        $vFile = $packageDir . "/version";
+        $vFile = $packageDir . "/" . $this->config['version_filename'];
 
         if (!file_exists($vFile)) {
             throw new DeploymentServerException("Version file not found.");
