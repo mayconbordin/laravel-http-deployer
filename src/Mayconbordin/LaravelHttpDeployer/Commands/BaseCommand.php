@@ -2,10 +2,22 @@
 
 use Illuminate\Console\Command;
 use Illuminate\Config\Repository as Config;
+use Mayconbordin\LaravelHttpDeployer\Loggers\Logger;
+use Mayconbordin\LaravelHttpDeployer\Loggers\OutputLogger;
 use Symfony\Component\Yaml\Yaml;
 
 abstract class BaseCommand extends Command
 {
+    /**
+     * @var int Start time of handle command in unix epoch time (in seconds).
+     */
+    protected $startTime;
+
+    /**
+     * @var Logger
+     */
+    protected $logger;
+
     /**
      * Create a new command instance.
      */
@@ -67,5 +79,30 @@ abstract class BaseCommand extends Command
             $this->error("Configuration format '$ext' not supported. Supported format is YAML.");
             exit;
         }
+    }
+
+    protected function onStartCommand()
+    {
+        $this->startTime = time();
+        $this->info("Started at " . date('[Y-m-d H:i:s]'));
+        $this->info("Config file is ".$this->argument('config'));
+    }
+
+    protected function onEndCommand()
+    {
+        $time = time() - $this->startTime;
+        $this->info("Finished at " . date('[Y-m-d H:i:s]') . " (in $time seconds)");
+    }
+
+    /**
+     * @return Logger
+     */
+    protected function getLogger()
+    {
+        if ($this->logger == null) {
+            $this->logger = new OutputLogger($this->output);
+        }
+
+        return $this->logger;
     }
 }

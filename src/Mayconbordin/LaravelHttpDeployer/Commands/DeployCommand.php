@@ -37,11 +37,7 @@ class DeployCommand extends BaseCommand
         $deploymentName = $this->argument('deployment');
         $packageOnly    = $this->option('package-only');
 
-        $time = time();
-        $this->info("Started at " . date('[Y-m-d H:i:s]'));
-        $this->info("Config file is ".$this->argument('config'));
-
-        $logger = new OutputLogger($this->output);
+        $this->onStartCommand();
 
         foreach ($deployments as $section => $config) {
             if ($deploymentName != null && $deploymentName != $section) {
@@ -51,10 +47,10 @@ class DeployCommand extends BaseCommand
             $this->info("Deploying $section");
 
             try {
-                $server = new HttpServer($logger);
+                $server = new HttpServer($this->getLogger());
                 $server->initialize($config);
 
-                $deployer = new LaravelHttpDeployer($server, $config->get('local.path', '.'), $logger);
+                $deployer = new LaravelHttpDeployer($server, $config->get('local.path', '.'), $this->getLogger());
                 $deployer->ignoreMasks     = $config->get('ignore', []);
                 $deployer->extraFiles      = $config->get('extra_files', []);
                 $deployer->tempDir         = $config->get('local.temp_dir', '/tmp');
@@ -76,7 +72,6 @@ class DeployCommand extends BaseCommand
             }
         }
 
-        $time = time() - $time;
-        $this->info("Finished at " . date('[Y-m-d H:i:s]') . " (in $time seconds)");
+        $this->onEndCommand();
     }
 }
