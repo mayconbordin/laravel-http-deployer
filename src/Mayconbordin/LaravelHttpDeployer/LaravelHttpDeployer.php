@@ -176,7 +176,7 @@ class LaravelHttpDeployer
 
 		foreach ($this->beforeScripts as $script) {
 			$cmd = sprintf("cd %s && %s", $this->local, $script);
-			$out = "";
+			$out = [];
 			$ret = 0;
 
 			exec($cmd, $out, $ret);
@@ -185,7 +185,7 @@ class LaravelHttpDeployer
 				throw new HttpDeployerException("An error ocurred while executing the before scipts: ".$out);
 			}
 
-			$this->logger->info($cmd . ": " . $out);
+			$this->logger->info($cmd . ": " . implode("\n",$out));
 		}
 	}
 
