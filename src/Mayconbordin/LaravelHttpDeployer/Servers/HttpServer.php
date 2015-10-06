@@ -72,6 +72,7 @@ class HttpServer implements Server
             });
 
             $response = $this->getClient()->send($request);
+            $this->logger->plain("\n");
 
             return json_decode($response->getBody()->getContents(), true);
         } catch (ClientException $e) {
