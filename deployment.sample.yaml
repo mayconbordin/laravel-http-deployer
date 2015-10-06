@@ -14,12 +14,13 @@ deployments:
 
     ignore:
       - .git*
-      - project.pp[jx]
-      - /deployment.*
-      - /log
+      - deployment.*
+      - *.log
       - temp/*
-      - !temp/.htaccess
       - deploy
+      - bower_components
+      - node_modules
+      - .idea
 
     extra_files:
       'deploy/env_file': .env
