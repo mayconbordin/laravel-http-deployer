@@ -14,6 +14,7 @@ class RollbackCommand extends BaseCommand
      */
     protected $signature = 'deploy:rollback
                             {config : The path to the configuration file}
+                            {version? : The version to which you want to rollback to.}
                             {deployment? : Name of deployment to be rolled back. Default to all.}';
 
     /**

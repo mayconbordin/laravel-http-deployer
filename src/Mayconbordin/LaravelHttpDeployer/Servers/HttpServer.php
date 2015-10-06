@@ -95,7 +95,10 @@ class HttpServer implements Server
         try {
             $body = new PostBody();
             $body->setField('config', json_encode($config));
-            $body->setField('version', $version);
+
+            if ($version != null) {
+                $body->setField('version', $version);
+            }
 
             $request = $this->getClient()->createRequest('POST', $url, [
                 'headers' => $this->getHeaders(),
