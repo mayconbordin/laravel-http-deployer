@@ -49,6 +49,8 @@ You will also need to create a file with the deployment configuration. It's a YA
 deployments:
   application:
     auth_key: AUTH_KEY
+    version_filename: version
+    
     remote:
       url: http://localhost
       endpoint: /deploy.php
@@ -83,7 +85,7 @@ deployments:
       - grunt
 ```
 
-The `deployments` section can have multiple entries, each one describing one deployment configuration. The `auth_key` is a string that will be used to authenticate the deployment with the server.
+The `deployments` section can have multiple entries, each one describing one deployment configuration. The `auth_key` is a string that will be used to authenticate the deployment with the server, choose it carefully. The `version_filename` is the name of the version file used to control the deployment version.
 
 In the `remote` section you specify the host where the deployment is going to occurr by setting the `url`, whereas the `endpoint` points to the path where the `deploy.php` can be accessed externally. The `target` is the full path to the installation directory on the server. The `temp_dir` will be used for extracting the package prior to installation and the `history_dir` is going to store the older deployment versions.
 
