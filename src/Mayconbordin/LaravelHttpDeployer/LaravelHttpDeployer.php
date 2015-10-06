@@ -21,6 +21,11 @@ class LaravelHttpDeployer
 	public $extraFiles = [];
 
 	/**
+	 * @var array List of scripts to run before packaging the application.
+	 */
+	public $beforeScripts = [];
+
+	/**
 	 * @var string Temporary directory for creating packages for deployment
 	 */
 	public $tempDir = '/tmp';
@@ -79,6 +84,7 @@ class LaravelHttpDeployer
 	{
 		$this->logger->info("Starting deployment...");
 
+		$this->applyBeforeScripts();
 		$this->incrementVersion();
 		$this->createPackage();
 		$this->addExtraFiles();
@@ -97,6 +103,7 @@ class LaravelHttpDeployer
 	{
 		$this->logger->info("Packaging application...");
 
+		$this->applyBeforeScripts();
 		$this->createPackage();
 		$this->addExtraFiles();
 
@@ -161,6 +168,25 @@ class LaravelHttpDeployer
 		$f = fopen($versionFile, 'w');
 		fwrite($f, "{$this->version}");
 		fclose($f);
+	}
+
+	private function applyBeforeScripts()
+	{
+		$this->logger->info("Applying before scripts...");
+
+		foreach ($this->beforeScripts as $script) {
+			$cmd = sprintf("cd %s && %s", $this->local, $script);
+			$out = "";
+			$ret = 0;
+
+			exec($cmd, $out, $ret);
+
+			if ($ret != 0) {
+				throw new HttpDeployerException("An error ocurred while executing the before scipts: ".$out);
+			}
+
+			$this->logger->info($cmd . ": " . $out);
+		}
 	}
 
 	/**

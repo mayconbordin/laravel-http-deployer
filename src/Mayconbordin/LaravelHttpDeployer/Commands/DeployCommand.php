@@ -59,6 +59,7 @@ class DeployCommand extends BaseCommand
                 $deployer->extraFiles      = $config->get('extra_files', []);
                 $deployer->tempDir         = $config->get('local.temp_dir', '/tmp');
                 $deployer->versionFileName = $config->get('version_filename', 'version');
+                $deployer->beforeScripts   = $config->get('before_scripts', []);
                 $deployer->packageName     = $section;
 
                 if ($packageOnly) {

@@ -24,3 +24,6 @@ deployments:
 
     extra_files:
       'deploy/env_file': .env
+
+    before_scripts:
+      - composer install --no-dev
