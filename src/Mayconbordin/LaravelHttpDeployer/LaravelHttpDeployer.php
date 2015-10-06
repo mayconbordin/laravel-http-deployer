@@ -26,6 +26,11 @@ class LaravelHttpDeployer
 	public $tempDir = '/tmp';
 
 	/**
+	 * @var string The name of the package file
+	 */
+	public $packageName = 'package';
+
+	/**
 	 * @var string Name of the file that holds the deployment version
 	 */
 	public $versionFileName = 'version';
@@ -90,7 +95,7 @@ class LaravelHttpDeployer
 	{
 		$this->logger->info("Packaging version {$this->version} for deployment.");
 
-		$this->package = $this->tempDir . '/deployment-' . $this->version . '.tar.gz';
+		$this->package = $this->tempDir . '/' . $this->packageName . '-' . $this->version . '.tar.gz';
 
 		$cmd = sprintf("cd %s && tar -zc -f %s * %s", $this->local, $this->package, $this->getIgnoreMasksTar());
 		$out = null;

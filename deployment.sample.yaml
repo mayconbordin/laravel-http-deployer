@@ -1,0 +1,25 @@
+deployments:
+  site1:
+    auth_key: AUTH_KEY
+    remote:
+      url: http://localhost
+      endpoint: /deploy.php
+      target: /home/user/app
+      temp_dir: /home/user/tmp
+      history_dir: /home/user/tmp/old_deployments
+
+    local:
+      path: .
+      temp_dir: /tmp
+
+    ignore:
+      - .git*
+      - project.pp[jx]
+      - /deployment.*
+      - /log
+      - temp/*
+      - !temp/.htaccess
+      - deploy
+
+    extra_files:
+      'deploy/env_file': .env

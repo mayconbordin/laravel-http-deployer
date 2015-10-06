@@ -10,6 +10,7 @@ use Mayconbordin\LaravelHttpDeployer\Loggers\Logger;
 use Mayconbordin\LaravelHttpDeployer\Loggers\OutputLogger;
 use Mayconbordin\LaravelHttpDeployer\Servers\HttpServer;
 use Mayconbordin\LaravelHttpDeployer\Servers\Server;
+use Symfony\Component\Yaml\Yaml;
 
 class DeployCommand extends Command
 {
@@ -79,12 +80,12 @@ class DeployCommand extends Command
             try {
                 $server = $this->getServer($config, $logger);
 
-                $deployer = new LaravelHttpDeployer($server, $config->get('local', '.'), $logger);
+                $deployer = new LaravelHttpDeployer($server, $config->get('local.path', '.'), $logger);
                 $deployer->ignoreMasks     = $config->get('ignore', []);
                 $deployer->extraFiles      = $config->get('extra_files', []);
-                $deployer->tempDir         = $config->get('local_temp_dir', '/tmp');
+                $deployer->tempDir         = $config->get('local.temp_dir', '/tmp');
                 $deployer->versionFileName = $config->get('version_filename', 'version');
-
+                $deployer->packageName     = $section;
 
                 $response = $deployer->deploy();
                 $this->info($response['success']);
@@ -122,12 +123,12 @@ class DeployCommand extends Command
     {
         $config = $this->loadConfigFile();
 
-        // If there is only a single deployment section
-        if (isset($config['remote']) && is_string($config['remote'])) {
-            $config = ['' => $config];
+        if (!isset($config['deployments'])) {
+            $this->error("Configuration file should have a 'deployments' section.");
+            exit;
         }
 
-        foreach ($config as $section => $cfg) {
+        foreach ($config['deployments'] as $section => $cfg) {
             if (!is_array($cfg)) {
                 continue;
             }
@@ -157,12 +158,10 @@ class DeployCommand extends Command
 
         $ext = pathinfo($file, PATHINFO_EXTENSION);
 
-        if ($ext == 'php') {
-            return include $file;
-        } else if ($ext == 'ini')
-            return parse_ini_file($file, true);
-        else {
-            $this->error("Configuration format '$ext' not supported.");
+        if ($ext == 'yaml') {
+            return Yaml::parse(file_get_contents($file));
+        } else {
+            $this->error("Configuration format '$ext' not supported. Supported format is YAML.");
             exit;
         }
     }

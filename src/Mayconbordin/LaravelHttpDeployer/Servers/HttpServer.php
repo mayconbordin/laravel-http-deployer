@@ -50,7 +50,7 @@ class HttpServer implements Server
      */
     public function deploy($packageFile)
     {
-        $url    = $this->config->get('remote_endpoint') . '?cmd=deploy';
+        $url    = $this->config->get('remote.endpoint') . '?cmd=deploy';
         $config = $this->getRequestConfig();
         $config['package_md5'] = md5_file($packageFile);
 
@@ -88,7 +88,7 @@ class HttpServer implements Server
      */
     public function rollback()
     {
-        $url    = $this->config->get('remote_endpoint') . '?cmd=rollback';
+        $url    = $this->config->get('remote.endpoint') . '?cmd=rollback';
         $config = $this->getRequestConfig();
 
         try {
@@ -115,7 +115,7 @@ class HttpServer implements Server
      */
     public function status()
     {
-        $url    = $this->config->get('remote_endpoint') . '?cmd=status';
+        $url    = $this->config->get('remote.endpoint') . '?cmd=status';
         $config = $this->getRequestConfig();
 
         try {
@@ -142,7 +142,7 @@ class HttpServer implements Server
     {
         if ($this->client == null) {
             $this->client = new Client([
-                'base_url' => $this->config->get('remote_url')
+                'base_url' => $this->config->get('remote.url')
             ]);
         }
         return $this->client;
@@ -174,9 +174,9 @@ class HttpServer implements Server
     private function getRequestConfig()
     {
         return [
-            'target'       => $this->config->get('remote_target'),
-            'temp_dir'     => $this->config->get('remote_temp_dir'),
-            'history_dir'  => $this->config->get('remote_history_dir')
+            'target'       => $this->config->get('remote.target'),
+            'temp_dir'     => $this->config->get('remote.temp_dir'),
+            'history_dir'  => $this->config->get('remote.history_dir')
         ];
     }
 
