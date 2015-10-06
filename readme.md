@@ -47,7 +47,7 @@ You will also need to create a file with the deployment configuration. It's a YA
 
 ```yaml
 deployments:
-  site1:
+  application:
     auth_key: AUTH_KEY
     remote:
       url: http://localhost
@@ -62,19 +62,87 @@ deployments:
 
     ignore:
       - .git*
-      - project.pp[jx]
-      - /deployment.*
-      - /log
-      - temp/*
-      - !temp/.htaccess
+      - bower_components
+      - node_modules
+      - .idea
       - deploy
+      - deployment.*
+      - storage/app/*
+      - storage/framework/cache/*
+      - storage/framework/sessions/*
+      - storage/framework/views/*
+      - storage/logs/*
+      - .env*
 
     extra_files:
-      'deploy/env_file': .env
+      'deploy/env_file': ./.env
+      
+    before_scripts:
+      - composer install --no-dev
+      - php artisan optimize
+      - grunt
 ```
 
 The `deployments` section can have multiple entries, each one describing one deployment configuration. The `auth_key` is a string that will be used to authenticate the deployment with the server.
 
+In the `remote` section you specify the host where the deployment is going to occurr by setting the `url`, whereas the `endpoint` points to the path where the `deploy.php` can be accessed externally. The `target` is the full path to the installation directory on the server. The `temp_dir` will be used for extracting the package prior to installation and the `history_dir` is going to store the older deployment versions.
+
+In the `local` section you only specify the `path` to the application, the default value is the current directory (`.`), and the `temp_dir` for storing the packaged application for deployment.
+
 Files can be excluded from the package by using the `ignore` list, the patterns are those from the [`tar`](https://www.gnu.org/software/tar/manual/html_section/tar_50.html) command.
 
-The `extra_files` is a list of key/value pairs, where the key is the current file location and the value is the location of the file in the package. You can use it to include configuration files only meant for deployment, like the `.env` file.
+The `extra_files` is a list of key/value pairs, where the key is the current file location and the value is the location of the file in the package. You can use it to include configuration files only meant for deployment, like the `.env` file. You have to prefix the target location with `./`.
+
+The `before_scripts` can be used to run commands locally before packaging the application for deployment, like tasks for compressing CSS and JS files, removing development libraries, etc.
+
+## Usage
+
+#### Deploy
+
+To deploy your application run:
+
+```bash
+php artisan deploy deployment.yaml
+```
+
+You can also choose which deployment you want to execute:
+
+```bash
+php artisan deploy deployment.yaml application
+```
+
+And if you only want to package the application without deploying it:
+
+```bash
+php artisan deploy --package-only deployment.yaml
+```
+
+#### Rollback
+
+To rollback to a previous deployment version:
+
+```bash
+php artisan deploy:rollback deployment.yaml
+```
+
+And to rollback (or forward) to a specific version:
+
+```bash
+php artisan deploy:rollback deployment.yaml 5
+```
+
+You can also choose which deployment you want to rollback:
+
+```bash
+php artisan deploy deployment.yaml 5 application
+```
+
+#### Status
+
+To see which version is deployed on the remote server as well as all available versions in the history directory:
+
+You can also choose which deployment you want to execute:
+
+```bash
+php artisan deploy:status deployment.yaml
+```
