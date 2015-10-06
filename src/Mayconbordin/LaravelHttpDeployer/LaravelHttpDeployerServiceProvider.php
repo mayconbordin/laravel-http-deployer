@@ -2,6 +2,7 @@
 
 use Illuminate\Support\ServiceProvider;
 use Mayconbordin\LaravelHttpDeployer\Commands\DeployCommand;
+use Mayconbordin\LaravelHttpDeployer\Commands\StatusCommand;
 
 class LaravelHttpDeployerServiceProvider extends ServiceProvider
 {
@@ -13,7 +14,7 @@ class LaravelHttpDeployerServiceProvider extends ServiceProvider
     public function register()
     {
         $this->commands([
-            DeployCommand::class
+            DeployCommand::class, StatusCommand::class
         ]);
     }
 }
