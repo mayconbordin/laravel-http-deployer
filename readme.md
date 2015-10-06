@@ -28,7 +28,7 @@ Where `auth_key` is a unique key that will be used for authentication. So, your 
 In order to install Laravel HTTP Deployer locally (development environment), just add 
 
 ```json
-"mayconbordin/laravel-http-deployer": "dev-master"
+"mayconbordin/laravel-http-deployer": "0.1"
 ```
 
 to your composer.json. Then run `composer install` or `composer update`.
