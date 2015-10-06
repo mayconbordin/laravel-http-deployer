@@ -32,6 +32,7 @@ class RollbackCommand extends BaseCommand
     public function handle()
     {
         $deployments    = $this->fetchDeployments();
+        $version        = $this->argument('version');
         $deploymentName = $this->argument('deployment');
 
         $this->onStartCommand();
@@ -47,7 +48,7 @@ class RollbackCommand extends BaseCommand
                 $server = new HttpServer($this->getLogger());
                 $server->initialize($config);
 
-                $response = $server->rollback();
+                $response = $server->rollback($version);
                 $this->info($response['success']);
             } catch (ServerException $e) {
                 $this->error("Server error: ".$e->getMessage());

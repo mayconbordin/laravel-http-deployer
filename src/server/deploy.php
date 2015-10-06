@@ -245,7 +245,7 @@ class DeploymentServer
                 return $this->response(["success" => "Nothing to rollback"]);
             }
 
-            $replaceVersion = $oldVersions[0];
+            $replaceVersion = $oldVersions[sizeof($oldVersions) - 1];
         } else {
             if (!in_array($targetVersion, $versions)) {
                 return $this->response(["success" => "Version $targetVersion is not available for rollback"]);
