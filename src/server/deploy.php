@@ -117,7 +117,6 @@ class DeploymentServer
         $this->package = [
             'name' => $this->config['package_name'],
             'gzip' => $this->config['temp_dir'] . '/' . $this->config['package_name'] . '.tar.gz',
-            'tar'  => $this->config['temp_dir'] . '/' . $this->config['package_name'] . '.tar',
             'dir'  => $this->config['temp_dir'] . '/' . $this->config['package_name']
         ];
 
@@ -145,14 +144,10 @@ class DeploymentServer
         }
     }
 
-    private function cleanAll()
+    public function cleanAll()
     {
         if (file_exists($this->package['gzip'])) {
             unlink($this->package['gzip']);
-        }
-
-        if (file_exists($this->package['tar'])) {
-            unlink($this->package['tar']);
         }
 
         if (file_exists($this->package['dir'])) {
@@ -160,12 +155,16 @@ class DeploymentServer
         }
     }
 
-    public function getVersion($packageDir)
+    public function getVersion($packageDir, $throwException = true)
     {
         $vFile = $packageDir . "/" . $this->config['version_filename'];
 
         if (!file_exists($vFile)) {
-            throw new DeploymentServerException("Version file not found.");
+            if ($throwException) {
+                throw new DeploymentServerException("Version file not found.");
+            } else {
+                return null;
+            }
         }
 
         $version = file_get_contents($vFile);
@@ -178,16 +177,24 @@ class DeploymentServer
             mkdir($this->config['history_dir']);
         }
 
-        $oldVersion = $this->getVersion($this->config['target']);
+        $oldVersion = $this->getVersion($this->config['target'], false);
         $newVersion = $this->getVersion($this->package['dir']);
 
-        if ($oldVersion >= $newVersion) {
-            $this->cleanAll();
-            throw new DeploymentServerException("Old version ($oldVersion) is actually newer or equal to new version ($newVersion)");
+        // check if there is an old version
+        if ($oldVersion != null) {
+            if ($oldVersion >= $newVersion) {
+                $this->cleanAll();
+                throw new DeploymentServerException("Old version ($oldVersion) is actually newer or equal to new version ($newVersion)");
+            }
+
+            // move the old version (current) to the history
+            rename($this->config['target'], $this->config['history_dir'] . '/' . $oldVersion);
         }
 
-        // move the old version (current) to the history
-        rename($this->config['target'], $this->config['history_dir'] . '/' . $oldVersion);
+        // check if directory already exists
+        if (file_exists($this->config['target'])) {
+            removeDir($this->config['target']);
+        }
 
         // and move the new version to the current directory
         rename($this->package['dir'], $this->config['target']);
@@ -315,4 +322,6 @@ try {
     $server->response(["error" => $e->getMessage()], $e->getCode());
 } catch (Exception $e) {
     $server->response(["error" => $e->getMessage()], 400);
+} finally {
+    $server->cleanAll();
 }
