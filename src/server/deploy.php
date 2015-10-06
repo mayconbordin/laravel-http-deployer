@@ -107,6 +107,11 @@ class DeploymentServer
         $this->config = array_merge($this->defaultConfig, $config);
     }
 
+    private function getPostParameter($name, $default = null)
+    {
+        return isset($_POST[$name]) ? $_POST[$name] : $default;
+    }
+
     private function extractPackage($tmpPackage)
     {
         $this->package = [
@@ -130,13 +135,13 @@ class DeploymentServer
 
         // decompress from gz
         $out = 0;
-        $ret = "";
+        $ret = [];
         $cmd = sprintf("tar -C %s -xf %s", $this->package['dir'], $this->package['gzip']);
 
         exec($cmd, $out, $ret);
 
         if ($ret != 0) {
-            throw new DeploymentServerException("Unable to extract deployment package: $out.");
+            throw new DeploymentServerException("Unable to extract deployment package: ".implode("\n", $out));
         }
     }
 
@@ -205,9 +210,13 @@ class DeploymentServer
 
         $history = scandir($this->config['history_dir'], SCANDIR_SORT_DESCENDING);
 
-        return array_filter($history, function($name) {
+        $history = array_filter($history, function($name) {
             return ($name != "." && $name != "..");
         });
+
+        sort($history, SORT_NUMERIC);
+
+        return $history;
     }
 
     private function deploy()
@@ -223,21 +232,32 @@ class DeploymentServer
 
     public function rollback()
     {
+        $targetVersion  = $this->getPostParameter('version');
         $currentVersion = $this->getVersion($this->config['target']);
-        $oldVersions = array_filter($this->getHistory(), function($version) use ($currentVersion) {
-            return ($version < $currentVersion);
-        });
+        $versions       = $this->getHistory();
 
-        if (sizeof($oldVersions) == 0) {
-            return $this->response(["success" => "Nothing to rollback"]);
+        if ($targetVersion == null) {
+            $oldVersions = array_filter($versions, function ($version) use ($currentVersion) {
+                return (intval($version) < intval($currentVersion));
+            });
+
+            if (sizeof($oldVersions) == 0) {
+                return $this->response(["success" => "Nothing to rollback"]);
+            }
+
+            $replaceVersion = $oldVersions[0];
+        } else {
+            if (!in_array($targetVersion, $versions)) {
+                return $this->response(["success" => "Version $targetVersion is not available for rollback"]);
+            }
+
+            $replaceVersion = $targetVersion;
         }
 
-        $oldVersion = $oldVersions[0];
-
         rename($this->config['target'], $this->config['history_dir'] . '/' . $currentVersion);
-        rename($this->config['history_dir'] . '/' . $oldVersion, $this->config['target']);
+        rename($this->config['history_dir'] . '/' . $replaceVersion, $this->config['target']);
 
-        $this->response(["success" => "Rolled back from version $currentVersion to version $oldVersion"]);
+        $this->response(["success" => "Rolled back from version $currentVersion to version $replaceVersion"]);
     }
 
     private function status()

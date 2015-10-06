@@ -83,10 +83,11 @@ class HttpServer implements Server
 
     /**
      * Rollback the last deployment.
+     * @param int|null $version
      * @return mixed|void
      * @throws ServerException
      */
-    public function rollback()
+    public function rollback($version = null)
     {
         $url    = $this->config->get('remote.endpoint') . '?cmd=rollback';
         $config = $this->getRequestConfig();
@@ -94,6 +95,7 @@ class HttpServer implements Server
         try {
             $body = new PostBody();
             $body->setField('config', json_encode($config));
+            $body->setField('version', $version);
 
             $request = $this->getClient()->createRequest('POST', $url, [
                 'headers' => $this->getHeaders(),
@@ -174,9 +176,10 @@ class HttpServer implements Server
     private function getRequestConfig()
     {
         return [
-            'target'       => $this->config->get('remote.target'),
-            'temp_dir'     => $this->config->get('remote.temp_dir'),
-            'history_dir'  => $this->config->get('remote.history_dir')
+            'target'           => $this->config->get('remote.target'),
+            'temp_dir'         => $this->config->get('remote.temp_dir'),
+            'history_dir'      => $this->config->get('remote.history_dir'),
+            'version_filename' => $this->config->get('version_filename', 'version')
         ];
     }
 

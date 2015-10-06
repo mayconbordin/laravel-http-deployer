@@ -25,9 +25,10 @@ interface Server
 
 	/**
 	 * Rollback the last deployment.
+	 * @param int|null $version
 	 * @return mixed
 	 */
-	function rollback();
+	function rollback($version = 0);
 
 	/**
 	 * Get the deployment status from the server.
