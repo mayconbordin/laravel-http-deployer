@@ -88,6 +88,22 @@ class LaravelHttpDeployer
 	}
 
 	/**
+	 * Only packages the application, without incrementing the version or sending it to the server.
+	 *
+	 * @return string Path to the package
+	 * @throws HttpDeployerException
+	 */
+	public function packageOnly()
+	{
+		$this->logger->info("Packaging application...");
+
+		$this->createPackage();
+		$this->addExtraFiles();
+
+		return $this->package;
+	}
+
+	/**
 	 * Create the package with all files from the local path, except those that fall in the ignore mask rules.
 	 * @throws HttpDeployerException
 	 */
