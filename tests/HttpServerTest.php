@@ -16,12 +16,16 @@ class HttpServerTest extends TestCase
 
     private $config = [
         'auth_key' => 'AUTH_KEY',
-        'remote_url' => 'http://test.com',
-        'remote_endpoint' => '/deploy.php',
-        'remote_target' => '/home/test/app',
-        'remote_temp_dir' => '/home/test/tmp',
-        'remote_history_dir' => '/home/test/tmp/old_deployments',
-        'local' => '.'
+        'remote' => [
+            'url' => 'http://test.com',
+            'endpoint' => '/deploy.php',
+            'target' => '/home/test/app',
+            'temp_dir' => '/home/test/tmp',
+            'history_dir' => '/home/test/tmp/old_deployments',
+        ],
+        'local' => [
+            'path' => '.'
+        ]
     ];
 
     /**
@@ -30,23 +34,32 @@ class HttpServerTest extends TestCase
      */
     protected function setUp()
     {
-        $this->httpServer = new HttpServer();
+        $logger = new \Mayconbordin\LaravelHttpDeployer\Loggers\ConsoleLogger();
+        $this->httpServer = new HttpServer($logger);
         $this->httpServer->initialize(new \Illuminate\Config\Repository($this->config));
     }
 
 
     public function testDeploy()
     {
-        $body = m::mock(\Psr\Http\Message\StreamInterface::class);
+        $body = m::mock(\GuzzleHttp\Stream\StreamInterface::class);
         $body->shouldReceive('getContents')->once()->andReturn('{"success": "Deploy success"}');
 
-        $response = m::mock(\Psr\Http\Message\ResponseInterface::class);
+        $response = m::mock(\GuzzleHttp\Message\ResponseInterface::class);
         $response->shouldReceive('getBody')->once()->andReturn($body);
 
+        $emitter = m::mock(\GuzzleHttp\Event\EmitterInterface::class);
+        $emitter->shouldReceive('on')->with(m::mustBe('progress'), m::type('callable'))->once();
+
+        $request = m::mock(\GuzzleHttp\Message\RequestInterface::class);
+        $request->shouldReceive('getEmitter')->once()->andReturn($emitter);
+
         $client = m::mock(\GuzzleHttp\Client::class);
-        $client->shouldReceive('request')
-               ->with(m::mustBe('POST'), m::mustBe($this->config['remote_endpoint'] . '?cmd=deploy'), new PayloadMatcher(['headers', 'multipart']))
-               ->once()->andReturn($response);
+        $client->shouldReceive('createRequest')
+               ->with(m::mustBe('POST'), m::mustBe($this->config['remote']['endpoint'] . '?cmd=deploy'), new PayloadMatcher(['headers', 'body']))
+               ->once()->andReturn($request);
+
+        $client->shouldReceive('send')->with($request)->once()->andReturn($response);
 
         $package = $this->createTestPackage();
 
@@ -56,16 +69,20 @@ class HttpServerTest extends TestCase
 
     public function testRollback()
     {
-        $body = m::mock(\Psr\Http\Message\StreamInterface::class);
+        $body = m::mock(\GuzzleHttp\Stream\StreamInterface::class);
         $body->shouldReceive('getContents')->once()->andReturn('{"success": "Rolled back"}');
 
-        $response = m::mock(\Psr\Http\Message\ResponseInterface::class);
+        $response = m::mock(\GuzzleHttp\Message\ResponseInterface::class);
         $response->shouldReceive('getBody')->once()->andReturn($body);
 
+        $request = m::mock(\GuzzleHttp\Message\RequestInterface::class);
+
         $client = m::mock(\GuzzleHttp\Client::class);
-        $client->shouldReceive('request')
-            ->with(m::mustBe('POST'), m::mustBe($this->config['remote_endpoint'] . '?cmd=rollback'), new PayloadMatcher(['headers', 'form_params']))
-            ->once()->andReturn($response);
+        $client->shouldReceive('createRequest')
+            ->with(m::mustBe('POST'), m::mustBe($this->config['remote']['endpoint'] . '?cmd=rollback'), new PayloadMatcher(['headers', 'body']))
+            ->once()->andReturn($request);
+
+        $client->shouldReceive('send')->with($request)->once()->andReturn($response);
 
         $this->httpServer->setClient($client);
         $this->httpServer->rollback();
@@ -73,16 +90,20 @@ class HttpServerTest extends TestCase
 
     public function testStatus()
     {
-        $body = m::mock(\Psr\Http\Message\StreamInterface::class);
+        $body = m::mock(\GuzzleHttp\Stream\StreamInterface::class);
         $body->shouldReceive('getContents')->once()->andReturn('{"success": "Rolled back"}');
 
-        $response = m::mock(\Psr\Http\Message\ResponseInterface::class);
+        $response = m::mock(\GuzzleHttp\Message\ResponseInterface::class);
         $response->shouldReceive('getBody')->once()->andReturn($body);
 
+        $request = m::mock(\GuzzleHttp\Message\RequestInterface::class);
+
         $client = m::mock(\GuzzleHttp\Client::class);
-        $client->shouldReceive('request')
-            ->with(m::mustBe('POST'), m::mustBe($this->config['remote_endpoint'] . '?cmd=status'), new PayloadMatcher(['headers', 'form_params']))
-            ->once()->andReturn($response);
+        $client->shouldReceive('createRequest')
+            ->with(m::mustBe('POST'), m::mustBe($this->config['remote']['endpoint'] . '?cmd=status'), new PayloadMatcher(['headers', 'body']))
+            ->once()->andReturn($request);
+
+        $client->shouldReceive('send')->with($request)->once()->andReturn($response);
 
         $this->httpServer->setClient($client);
         $this->httpServer->status();
