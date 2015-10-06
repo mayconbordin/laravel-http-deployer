@@ -128,15 +128,17 @@ class DeployCommand extends Command
             exit;
         }
 
+        $deployments = [];
+
         foreach ($config['deployments'] as $section => $cfg) {
             if (!is_array($cfg)) {
                 continue;
             }
 
-            $config[$section] = new Config($cfg);
+            $deployments[$section] = new Config($cfg);
         }
 
-        return $config;
+        return $deployments;
     }
 
     /**
