@@ -131,7 +131,7 @@ class HttpServer implements Server
                 'headers'     => $this->getHeaders(),
                 'form_params' => $params
             ]);
-            
+
             return json_decode($response->getBody()->getContents(), true);
         } catch (ClientException $e) {
             throw new ServerException("Status error: ".$this->parseClientError($e), 0, $e);
@@ -145,7 +145,7 @@ class HttpServer implements Server
     {
         if ($this->client == null) {
             $this->client = new Client([
-                'base_url' => $this->config->get('remote.url')
+                'base_uri' => $this->config->get('remote.url')
             ]);
         }
         return $this->client;
