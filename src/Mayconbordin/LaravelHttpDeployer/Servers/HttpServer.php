@@ -124,16 +124,14 @@ class HttpServer implements Server
         $config = $this->getRequestConfig();
 
         try {
-            $body = new PostBody();
-            $body->setField('config', json_encode($config));
+            $params = [];
+            $params['config'] = json_encode($config);
 
-            $request = $this->getClient()->createRequest('POST', $url, [
-                'headers' => $this->getHeaders(),
-                'body'    => $body
+            $response = $request = $this->getClient()->request('POST', $url, [
+                'headers'     => $this->getHeaders(),
+                'form_params' => $params
             ]);
-
-            $response = $this->getClient()->send($request);
-
+            
             return json_decode($response->getBody()->getContents(), true);
         } catch (ClientException $e) {
             throw new ServerException("Status error: ".$this->parseClientError($e), 0, $e);
