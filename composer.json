@@ -17,7 +17,7 @@
 	    "illuminate/support": "5.0.x|5.1.x",
 	    "illuminate/console": "5.0.x|5.1.x",
 	    "illuminate/config": "5.0.x|5.1.x",
-	    "guzzlehttp/guzzle": "^5.2.0",
+	    "guzzlehttp/guzzle": "^6.1.1",
 	    "symfony/yaml": "~2.7.5"
 	},
 	"require-dev": {

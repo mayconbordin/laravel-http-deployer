@@ -1,11 +1,8 @@
 <?php namespace Mayconbordin\LaravelHttpDeployer\Servers;
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Event\ProgressEvent;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Post\PostBody;
-use GuzzleHttp\Post\PostFile;
 use Illuminate\Config\Repository as Config;
 use Mayconbordin\LaravelHttpDeployer\Exceptions\ServerException;
 use Mayconbordin\LaravelHttpDeployer\Loggers\Logger;
@@ -57,21 +54,25 @@ class HttpServer implements Server
         $this->logger->info("Sending package to remote server...");
 
         try {
-            $body = new PostBody();
-            $body->setField('config', json_encode($config));
-            $body->addFile(new PostFile('package', fopen($packageFile, 'r'), null, ['Content-Type' => 'application/gzip']));
-
-            $request = $this->getClient()->createRequest('POST', $url, [
-                'headers' => $this->getHeaders(),
-                'body'    => $body
+            $response = $this->getClient()->request('POST', $url, [
+                'headers'   => $this->getHeaders(),
+                'multipart' => [
+                    [
+                        'name'     => 'config',
+                        'contents' => json_encode($config)
+                    ],
+                    [
+                        'name'     => 'package',
+                        'contents' => fopen($packageFile, 'r'),
+                        'headers'  => ['Content-Type' => 'application/gzip']
+                    ]
+                ],
+                'progress' => function ($downloadSize, $downloaded, $uploadSize, $uploaded) {
+                    $p = ($uploaded == 0) ? 0 : intval(($uploaded * 100)/$uploadSize);
+                    $this->logger->plain($p . '% uploaded ('.$uploaded . ' of ' . $uploadSize . " bytes)\r");
+                }
             ]);
 
-            $request->getEmitter()->on('progress', function (ProgressEvent $e) {
-                $p = ($e->uploaded == 0) ? 0 : intval(($e->uploaded * 100)/$e->uploadSize);
-                $this->logger->plain($p . '% uploaded ('.$e->uploaded . ' of ' . $e->uploadSize . " bytes)\r");
-            });
-
-            $response = $this->getClient()->send($request);
             $this->logger->plain("\n");
 
             return json_decode($response->getBody()->getContents(), true);
@@ -94,19 +95,17 @@ class HttpServer implements Server
         $config = $this->getRequestConfig();
 
         try {
-            $body = new PostBody();
-            $body->setField('config', json_encode($config));
+            $params = [];
+            $params['config'] = json_encode($config);
 
             if ($version != null) {
-                $body->setField('version', $version);
+                $params['version'] = $version;
             }
 
-            $request = $this->getClient()->createRequest('POST', $url, [
-                'headers' => $this->getHeaders(),
-                'body'    => $body
+            $response = $this->getClient()->request('POST', $url, [
+                'headers'     => $this->getHeaders(),
+                'form_params' => $params
             ]);
-
-            $response = $this->getClient()->send($request);
 
             return json_decode($response->getBody()->getContents(), true);
         } catch (ClientException $e) {
